@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { Link } from "react-router-dom";
-import { FaCrown } from "react-icons/fa6";
 import { LuMail, LuLock, LuEye, LuEyeOff, LuCheck } from "react-icons/lu";
 import logo from "../assets/monkey_logo.png";
 

@@ -684,9 +684,9 @@ function Match() {
                       <span className="text-white text-sm sm:text-base font-medium">
                         {playerById[peopleKing.playerId].name}
                       </span>
-                      <span className="text-gray-300 text-sm sm:text-base">
+                      {/* <span className="text-gray-300 text-sm sm:text-base">
                         {peopleKing.percentage}%
-                      </span>
+                      </span> */}
                     </div>
                   ) : (
                     <span className="text-gray-400 text-sm">Sin votos aún</span>
@@ -694,54 +694,101 @@ function Match() {
                 </div>
               </div>
 
-              {/* User ratings list */}
+              {/* User ratings list (grouped by team, sorted by promedio desc) */}
               <div className="mt-2 bg-card">
-                <p className="text-white text-sm font-medium mb-2">
-                  Tus calificaciones
-                </p>
-                <div className="divide-y divide-gray-700">
-                  {userRatings.map((r) => {
-                    const pid = mpIdToPlayerId[r.match_players_id];
-                    const p = pid ? playerById[pid] : null;
-                    const avg = pid ? averageRatings[pid] : undefined;
-                    return (
-                      <div
-                        key={r.match_players_id}
-                        className="py-2 flex items-center justify-between"
-                      >
-                        <div className="flex items-center gap-2">
-                          {p?.photo ? (
-                            <img
-                              className="size-8 aspect-square rounded-full object-cover"
-                              src={p.photo}
-                              alt={`${p?.name || "Jugador"} photo`}
-                            />
-                          ) : (
-                            <div className="size-8 aspect-square rounded-full bg-gray-700" />
-                          )}
-                          <div className="flex flex-col">
-                            <span className="text-white text-sm">
-                              {p?.name || "Jugador"}
-                            </span>
-                            {typeof avg === "number" && !Number.isNaN(avg) && (
-                              <span className="text-gray-400 text-xs">
-                                Promedio: {avg.toFixed(1)}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="text-green-400 text-sm sm:text-base font-semibold">
-                          {r.rating}
-                        </div>
+                <p className="text-white text-sm font-medium mb-3">Tus calificaciones</p>
+                {(() => {
+                  const entries = userRatings
+                    .map((r) => {
+                      const pid = mpIdToPlayerId[r.match_players_id];
+                      const p = pid ? playerById[pid] : null;
+                      if (!p) return null as any;
+                      const avg = typeof averageRatings[pid] === "number" ? averageRatings[pid] : null;
+                      const teamId = p?.team_id?.id ?? null;
+                      return { r, pid, p, avg, teamId };
+                    })
+                    .filter(Boolean) as Array<{
+                    r: { rating: number; match_players_id: string };
+                    pid: string;
+                    p: any;
+                    avg: number | null;
+                    teamId: string | null;
+                  }>;
+
+                  const homeId = partido?.team_home_id?.id;
+                  const visitId = partido?.team_visit_id?.id;
+                  const byAvgDesc = (a: any, b: any) => (b.avg ?? -Infinity) - (a.avg ?? -Infinity);
+                  const homeEntries = entries.filter((e) => e.teamId === homeId).sort(byAvgDesc);
+                  const visitEntries = entries.filter((e) => e.teamId === visitId).sort(byAvgDesc);
+
+                  const TeamBlock = ({
+                    title,
+                    badge,
+                    items,
+                  }: {
+                    title: string;
+                    badge?: string;
+                    items: typeof entries;
+                  }) => (
+                    <div className="mb-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        {badge ? (
+                          <img className="size-5" src={badge} alt={`${title} badge`} />
+                        ) : null}
+                        <span className="text-gray-300 text-sm font-semibold">{title}</span>
                       </div>
-                    );
-                  })}
-                  {userRatings.length === 0 && (
-                    <div className="py-2 text-gray-400 text-sm">
-                      No se encontraron calificaciones.
+                      {items.length === 0 ? (
+                        <div className="py-2 text-gray-500 text-sm">Sin calificaciones</div>
+                      ) : (
+                        <div className="divide-y divide-gray-700">
+                          {items.map(({ r, p, avg }) => (
+                            <div key={r.match_players_id} className="py-2 flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                {p?.photo ? (
+                                  <img
+                                    className="size-8 aspect-square rounded-full object-cover"
+                                    src={p.photo}
+                                    alt={`${p?.name || "Jugador"} photo`}
+                                  />
+                                ) : (
+                                  <div className="size-8 aspect-square rounded-full bg-gray-700" />
+                                )}
+                                <div className="flex flex-col">
+                                  <span className="text-white text-sm">{p?.name || "Jugador"}</span>
+                                  {typeof avg === "number" && !Number.isNaN(avg) ? (
+                                    <span className="text-gray-400 text-xs">Promedio: {avg.toFixed(1)}</span>
+                                  ) : null}
+                                </div>
+                              </div>
+                              <div className="text-green-400 text-sm sm:text-base font-semibold">{r.rating}</div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
+                  );
+
+                  if (homeEntries.length === 0 && visitEntries.length === 0) {
+                    return (
+                      <div className="py-2 text-gray-400 text-sm">No se encontraron calificaciones.</div>
+                    );
+                  }
+
+                  return (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <TeamBlock
+                        title={partido?.team_home_id?.name || "Local"}
+                        badge={partido?.team_home_id?.badge}
+                        items={homeEntries}
+                      />
+                      <TeamBlock
+                        title={partido?.team_visit_id?.name || "Visitante"}
+                        badge={partido?.team_visit_id?.badge}
+                        items={visitEntries}
+                      />
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           )}

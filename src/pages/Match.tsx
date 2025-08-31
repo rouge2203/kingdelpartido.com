@@ -684,8 +684,8 @@ function Match() {
                       <span className="text-white text-sm sm:text-base font-medium">
                         {playerById[peopleKing.playerId].name}
                       </span>
-                      <span className="text-gray-300 text-xs sm:text-sm">
-                        {peopleKing.votes} votos ({peopleKing.percentage}%)
+                      <span className="text-gray-300 text-sm sm:text-base">
+                        {peopleKing.percentage}%
                       </span>
                     </div>
                   ) : (

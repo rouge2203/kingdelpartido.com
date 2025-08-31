@@ -671,7 +671,7 @@ function Match() {
                   <div className="flex items-center gap-2">
                     <FaCrown className="text-yellow-500" />
                     <span className="text-white text-sm sm:text-base">
-                      King más votado
+                      King más votado ({peopleKing.percentage}%)
                     </span>
                   </div>
                   {peopleKing.playerId && playerById[peopleKing.playerId] ? (

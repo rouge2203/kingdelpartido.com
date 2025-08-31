@@ -556,7 +556,7 @@ function Match() {
                 {partido.team_home_id.name}
               </p>
             </div>
-            {!partido.finished && !partido.home_goals ? (
+            {!partido.finished && partido.home_goals == null ? (
               <p className="text-gray-400 w-1/3 text-center text-sm">
                 {(() => {
                   const date = new Date(partido.datetime);

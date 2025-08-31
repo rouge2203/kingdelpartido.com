@@ -40,7 +40,14 @@ export default function Login() {
       <div className="w-full max-w-md space-y-6">
         {/* Login Form */}
 
-        <div className="bg-primary border border-gray-600 bg-card rounded-lg p-6 shadow-md shadow-black">
+        <div className="bg-primary relative border border-gray-600 bg-card rounded-lg p-6 shadow-md shadow-black">
+          {/* Demo CTA top-right */}
+          <Link
+            to="/demo"
+            className="absolute top-4 right-4 z-10 border border-yellow-500 text-yellow-400 hover:bg-yellow-500 hover:text-black transition-colors px-3 py-1.5 rounded-md text-sm font-medium"
+          >
+            Conocer más
+          </Link>
           {/* Header */}
           <div className="text-center space-y-2 flex flex-col items-center">
             <img src={logo} alt="King del Partido logo" className="size-30 " />

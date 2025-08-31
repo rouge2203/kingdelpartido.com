@@ -7,6 +7,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Match from "./pages/Match";
 import ForgotPassword from "./pages/ForgotPassword";
 import RecoverPassword from "./pages/RecoverPassword";
+import Demo from "./pages/Demo";
 
 function AppRouter() {
   return (
@@ -18,6 +19,7 @@ function AppRouter() {
         <Route path="*" element={<NotFound />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/recover-password" element={<RecoverPassword />} />
+        <Route path="/demo" element={<Demo />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/match/:id" element={<Match />} />

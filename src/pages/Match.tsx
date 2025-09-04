@@ -594,7 +594,7 @@ function Match() {
                 Podrás calificar a los jugadores hasta
               </p>
               <p className="text-sm text-center flex text-gray-200 font-medium">
-                10 minutos antes pitazo final.
+                10 minutos antes del pitazo final.
                 <span className="inline align-text-bottom ml-1">
                   <GiWhistle className="text-yellow-500 size-5 inline" />
                 </span>
@@ -822,18 +822,23 @@ function Match() {
               </div>
             </div>
           )}
+        </div>
       </div>
-    </div>
 
       {/* Averages for finished matches when user didn't rate */}
       {partido.finished && !hasAlreadyRated && (
         <div className="w-full max-w-2xl border border-gray-600 bg-primary p-4 rounded-lg shadow-md shadow-black mb-6">
-          <h3 className="text-white text-lg font-semibold mb-3">Promedios de usuarios</h3>
+          <h3 className="text-white text-lg font-semibold mb-3">
+            Promedios de usuarios
+          </h3>
           {(() => {
             const toEntry = (mp: any) => {
               const pid = mp?.player_id?.id;
               const p = pid ? playerById[pid] : null;
-              const avg = pid && typeof averageRatings[pid] === "number" ? averageRatings[pid] : null;
+              const avg =
+                pid && typeof averageRatings[pid] === "number"
+                  ? averageRatings[pid]
+                  : null;
               const teamId = p?.team_id?.id ?? null;
               return pid && p ? { pid, p, avg, teamId } : null;
             };
@@ -841,33 +846,70 @@ function Match() {
             const visitId = partido?.team_visit_id?.id;
             const all = [...playersHome, ...playersVisit, ...playersDt]
               .map(toEntry)
-              .filter(Boolean) as Array<{ pid: string; p: any; avg: number | null; teamId: string | null }>;
-            const byAvgDesc = (a: any, b: any) => (b.avg ?? -Infinity) - (a.avg ?? -Infinity);
-            const homeEntries = all.filter((e) => e.teamId === homeId).sort(byAvgDesc);
-            const visitEntries = all.filter((e) => e.teamId === visitId).sort(byAvgDesc);
+              .filter(Boolean) as Array<{
+              pid: string;
+              p: any;
+              avg: number | null;
+              teamId: string | null;
+            }>;
+            const byAvgDesc = (a: any, b: any) =>
+              (b.avg ?? -Infinity) - (a.avg ?? -Infinity);
+            const homeEntries = all
+              .filter((e) => e.teamId === homeId)
+              .sort(byAvgDesc);
+            const visitEntries = all
+              .filter((e) => e.teamId === visitId)
+              .sort(byAvgDesc);
 
-            const TeamBlock = ({ title, badge, items }: { title: string; badge?: string; items: typeof homeEntries }) => (
+            const TeamBlock = ({
+              title,
+              badge,
+              items,
+            }: {
+              title: string;
+              badge?: string;
+              items: typeof homeEntries;
+            }) => (
               <div className="mb-4">
                 <div className="flex items-center gap-2 mb-2">
-                  {badge ? <img className="size-5" src={badge} alt={`${title} badge`} /> : null}
-                  <span className="text-gray-300 text-sm font-semibold">{title}</span>
+                  {badge ? (
+                    <img
+                      className="size-5"
+                      src={badge}
+                      alt={`${title} badge`}
+                    />
+                  ) : null}
+                  <span className="text-gray-300 text-sm font-semibold">
+                    {title}
+                  </span>
                 </div>
                 {items.length === 0 ? (
                   <div className="py-2 text-gray-500 text-sm">Sin datos</div>
                 ) : (
                   <div className="divide-y divide-gray-700">
                     {items.map(({ pid, p, avg }) => (
-                      <div key={pid} className="py-2 flex items-center justify-between">
+                      <div
+                        key={pid}
+                        className="py-2 flex items-center justify-between"
+                      >
                         <div className="flex items-center gap-2">
                           {p?.photo ? (
-                            <img className="size-8 aspect-square rounded-full object-cover" src={p.photo} alt={`${p?.name || "Jugador"} photo`} />
+                            <img
+                              className="size-8 aspect-square rounded-full object-cover"
+                              src={p.photo}
+                              alt={`${p?.name || "Jugador"} photo`}
+                            />
                           ) : (
                             <div className="size-8 aspect-square rounded-full bg-gray-700" />
                           )}
-                          <span className="text-white text-sm">{p?.name || "Jugador"}</span>
+                          <span className="text-white text-sm">
+                            {p?.name || "Jugador"}
+                          </span>
                         </div>
                         {typeof avg === "number" && !Number.isNaN(avg) ? (
-                          <div className="text-yellow-400 text-sm sm:text-base font-semibold">{avg.toFixed(1)}</div>
+                          <div className="text-yellow-400 text-sm sm:text-base font-semibold">
+                            {avg.toFixed(1)}
+                          </div>
                         ) : (
                           <div className="text-gray-500 text-sm">—</div>
                         )}
@@ -880,8 +922,16 @@ function Match() {
 
             return (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <TeamBlock title={partido?.team_home_id?.name || "Local"} badge={partido?.team_home_id?.badge} items={homeEntries} />
-                <TeamBlock title={partido?.team_visit_id?.name || "Visitante"} badge={partido?.team_visit_id?.badge} items={visitEntries} />
+                <TeamBlock
+                  title={partido?.team_home_id?.name || "Local"}
+                  badge={partido?.team_home_id?.badge}
+                  items={homeEntries}
+                />
+                <TeamBlock
+                  title={partido?.team_visit_id?.name || "Visitante"}
+                  badge={partido?.team_visit_id?.badge}
+                  items={visitEntries}
+                />
               </div>
             );
           })()}

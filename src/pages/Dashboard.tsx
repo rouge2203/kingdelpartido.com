@@ -16,6 +16,17 @@ const Dashboard = () => {
   const [predictedMatches, setPredictedMatches] = useState<Set<string>>(
     new Set()
   );
+  const [predictedDetails, setPredictedDetails] = useState<
+    Record<
+      string,
+      {
+        home_goals: number | null;
+        visit_goals: number | null;
+        king_player_id?: string | null;
+        king_name?: string | null;
+      }
+    >
+  >({});
   const [usernameModalOpen, setUsernameModalOpen] = useState(false);
 
   useEffect(() => {
@@ -46,14 +57,14 @@ const Dashboard = () => {
     fetchPartidos();
   }, []);
 
-  // Fetch which matches have predictions for this user
+  // Fetch which matches have predictions for this user and details
   useEffect(() => {
     const fetchPredicted = async () => {
       if (!user?.id || partidos.length === 0) return;
       const ids = partidos.map((p) => p.id);
       const { data, error } = await supabase
         .from("predictions")
-        .select("match_id")
+        .select("match_id, type, home_goals, visit_goals, player_id")
         .eq("user_id", user.id)
         .in("match_id", ids);
       if (error) {
@@ -62,6 +73,45 @@ const Dashboard = () => {
       }
       const set = new Set<string>((data ?? []).map((r: any) => r.match_id));
       setPredictedMatches(set);
+
+      // Build details and fetch king player names
+      const details: Record<
+        string,
+        {
+          home_goals: number | null;
+          visit_goals: number | null;
+          king_player_id?: string | null;
+          king_name?: string | null;
+        }
+      > = {};
+      const kingIds = new Set<string>();
+      (data ?? []).forEach((r: any) => {
+        if (!details[r.match_id])
+          details[r.match_id] = { home_goals: null, visit_goals: null };
+        if (r.type === 1) {
+          details[r.match_id].home_goals = r.home_goals ?? 0;
+          details[r.match_id].visit_goals = r.visit_goals ?? 0;
+        } else if (r.type === 3 && r.player_id) {
+          details[r.match_id].king_player_id = r.player_id;
+          kingIds.add(r.player_id);
+        }
+      });
+
+      if (kingIds.size > 0) {
+        const { data: players, error: pErr } = await supabase
+          .from("players")
+          .select("id, name")
+          .in("id", Array.from(kingIds));
+        if (!pErr) {
+          const nameById: Record<string, string> = {};
+          (players ?? []).forEach((p: any) => (nameById[p.id] = p.name));
+          Object.values(details).forEach((d) => {
+            if (d.king_player_id)
+              d.king_name = nameById[d.king_player_id] ?? null;
+          });
+        }
+      }
+      setPredictedDetails(details);
     };
     fetchPredicted();
   }, [user?.id, partidos]);
@@ -117,11 +167,7 @@ const Dashboard = () => {
       <p className="text-white  w-full text-center text-base font-semibold">
         {partido?.competition_id?.name ?? "Sin competencia"}
       </p>
-      {predictedMatches.has(partido.id) && (
-        <span className="self-end -mt-6 mr-1 text-[10px] px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 border border-green-600">
-          Predicción enviada
-        </span>
-      )}
+      {/* removed badge when predicted */}
       {partido.stadium && (
         <p className="text-gray-400 -mt-2  text-xs   w-full text-center font-semibold">
           {partido.stadium}
@@ -172,7 +218,7 @@ const Dashboard = () => {
             Podrás calificar a los jugadores hasta
           </p>
           <p className="text-sm text-center flex   text-gray-200 font-medium">
-            10 minutos antes pitazo final.
+            10 minutos antes del pitazo final.
             <span className="inline align-text-bottom ml-1">
               <GiWhistle className="text-yellow-500 size-5 inline" />
             </span>
@@ -190,54 +236,87 @@ const Dashboard = () => {
         </NavLink>
       )}
 
-                {partido.finished && (
-                  <div className="w-full max-w-lg bg-yellow-500/10 border border-gray-600 rounded-lg p-3 sm:p-4 flex items-center justify-between shadow-md shadow-black">
-                    <div className="flex items-center gap-3 sm:gap-4">
-                      <div className="relative">
-                        <img
-                          className="size-12 sm:size-14 rounded-full object-cover border-2 border-yellow-500"
-                          src={partido.king_id.photo}
-                          alt={`${partido.king_id.name} photo`}
-                        />
-                        <FaCrown className="absolute -top-2 -left-2 size-5 text-yellow-500 bg-black/60 rounded-full p-0.5" />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-[10px] sm:text-xs text-gray-400 tracking-wide uppercase">
-                          King del Partido
-                        </span>
-                        <span className="text-white text-xl sm:text-2xl font-semibold leading-none">
-                          {partido.king_id.name}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <span className="hidden sm:inline text-yellow-500 text-sm">
-                        Votos
-                      </span>
-                      <span className="px-2 py-1 rounded-md bg-yellow-500/10 border border-yellow-500 text-yellow-400 text-sm sm:text-base font-semibold">
-                        {partido.percentage_king}%
-                      </span>
-                    </div>
-                  </div>
-                )}
+      {partido.finished && (
+        <div className="w-full max-w-lg bg-yellow-500/10 border border-gray-600 rounded-lg p-3 sm:p-4 flex items-center justify-between shadow-md shadow-black">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="relative">
+              <img
+                className="size-12 sm:size-14 rounded-full object-cover border-2 border-yellow-500"
+                src={partido.king_id.photo}
+                alt={`${partido.king_id.name} photo`}
+              />
+              <FaCrown className="absolute -top-2 -left-2 size-5 text-yellow-500 bg-black/60 rounded-full p-0.5" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] sm:text-xs text-gray-400 tracking-wide uppercase">
+                King del Partido
+              </span>
+              <span className="text-white text-xl sm:text-2xl font-semibold leading-none">
+                {partido.king_id.name}
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <span className="hidden sm:inline text-yellow-500 text-sm">
+              Votos
+            </span>
+            <span className="px-2 py-1 rounded-md bg-yellow-500/10 border border-yellow-500 text-yellow-400 text-sm sm:text-base font-semibold">
+              {partido.percentage_king}%
+            </span>
+          </div>
+        </div>
+      )}
 
-                {partido.finished && (
-                  <NavLink
-                    to={`/match/${partido.id}`}
-                    className="mt-2 border hover:cursor-pointer border-gray-600 flex items-center justify-center gap-1 p-2 text-sm text-white rounded-md"
-                  >
-                    Ver calificaciones
-                  </NavLink>
-                )}
+      {partido.finished && (
+        <NavLink
+          to={`/match/${partido.id}`}
+          className="mt-2 border hover:cursor-pointer border-gray-600 flex items-center justify-center gap-1 p-2 text-sm text-white rounded-md"
+        >
+          Ver calificaciones
+        </NavLink>
+      )}
 
       {partido.bettable && (
         <div className="w-full">
-          <button
-            onClick={() => onClickSubirPredicciones(partido.id)}
-            className="w-full mt-1 rounded-md bg-yellow-500/90 text-black font-semibold px-3 py-2 hover:bg-yellow-500"
-          >
-            Subir predicciones
-          </button>
+          {predictedMatches.has(partido.id) ? (
+            <div className="w-full mt-1 flex items-center justify-between gap-3 border border-gray-600 rounded-md px-3 py-2">
+              <div className="text-sm text-gray-200">
+                {(() => {
+                  const d = predictedDetails[partido.id];
+                  const score = d
+                    ? `${d.home_goals ?? 0}-${d.visit_goals ?? 0}`
+                    : "-";
+                  const k = d?.king_name ?? "-";
+                  return (
+                    <span>
+                      Tu pronóstico:{" "}
+                      <span className="text-yellow-400 font-semibold">
+                        {score}
+                      </span>{" "}
+                      <br className="sm:hidden" />{" "}
+                      {/* add a space between the two lines */}
+                      <span className="hidden sm:inline">—</span> King del
+                      Partido:{" "}
+                      <span className="text-yellow-400 font-semibold">{k}</span>
+                    </span>
+                  );
+                })()}
+              </div>
+              <NavLink
+                to={`/predicciones/${partido.id}`}
+                className="shrink-0 border border-gray-600 rounded-md px-2 py-1 text-sm text-gray-200 hover:border-yellow-600 hover:text-yellow-400"
+              >
+                Ver más
+              </NavLink>
+            </div>
+          ) : (
+            <button
+              onClick={() => onClickSubirPredicciones(partido.id)}
+              className="w-full mt-1 rounded-md bg-yellow-500/90 text-black font-semibold px-3 py-2 hover:bg-yellow-500"
+            >
+              Subir predicciones
+            </button>
+          )}
           {profile?.role === "staff" && (
             <button
               onClick={() => navigate(`/staff/predicciones/${partido.id}`)}

@@ -316,14 +316,14 @@ const Predicciones = () => {
 
   const showHomeScorers = homePlayers.length > 0 && (homeGoals ?? 0) > 0;
   const showVisitScorers = visitPlayers.length > 0 && (visitGoals ?? 0) > 0;
-  const bothTeamsHavePlayers = homePlayers.length > 0 && visitPlayers.length > 0;
+  const anyTeamHasPlayers = homePlayers.length > 0 || visitPlayers.length > 0;
 
   const allRequirementsMet = canEdit
     ? homeGoals !== null &&
       visitGoals !== null &&
       (showHomeScorers ? homeScorers.every((v) => !!v) : true) &&
       (showVisitScorers ? visitScorers.every((v) => !!v) : true) &&
-      (bothTeamsHavePlayers ? !!kingPlayerId : true)
+      (anyTeamHasPlayers ? !!kingPlayerId : true)
     : true;
 
   return (
@@ -616,7 +616,7 @@ const Predicciones = () => {
         )}
 
         {/* Scorers */}
-        {canEdit && bothTeamsHavePlayers && (showHomeScorers || showVisitScorers) && (
+        {canEdit && (showHomeScorers || showVisitScorers) && (
           <div className="border border-yellow-700/40 rounded-lg p-4 bg-primary shadow-[0_0_0_1px_rgba(234,179,8,0.15)]">
             <h3 className="text-white font-semibold mb-1 flex items-center gap-2">
               <span className="text-yellow-400 text-lg mr-0">
@@ -834,7 +834,7 @@ const Predicciones = () => {
         )}
 
         {/* King del Partido */}
-        {canEdit && bothTeamsHavePlayers && (
+        {canEdit && anyTeamHasPlayers && (
           <div className="border border-yellow-700/40 rounded-lg p-4 bg-primary shadow-[0_0_0_1px_rgba(234,179,8,0.15)]">
             <h3 className="text-white font-semibold mb-1 flex items-center gap-2">
               <span className="text-yellow-400 text-lg mr-0">

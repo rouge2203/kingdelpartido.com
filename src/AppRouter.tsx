@@ -4,10 +4,14 @@ import SignUp from "./pages/SignUp";
 import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Layout from "./components/Layout";
 import Match from "./pages/Match";
 import ForgotPassword from "./pages/ForgotPassword";
 import RecoverPassword from "./pages/RecoverPassword";
 import Demo from "./pages/Demo";
+import Predicciones from "./pages/Predicciones";
+import StaffRoute from "./components/StaffRoute";
+import StaffPredicciones from "./pages/StaffPredicciones";
 
 function AppRouter() {
   return (
@@ -21,8 +25,14 @@ function AppRouter() {
         <Route path="/recover-password" element={<RecoverPassword />} />
         <Route path="/demo" element={<Demo />} />
         <Route element={<ProtectedRoute />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/match/:id" element={<Match />} />
+          <Route element={<Layout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/match/:id" element={<Match />} />
+            <Route path="/predicciones/:id" element={<Predicciones />} />
+            <Route element={<StaffRoute />}>
+              <Route path="/staff/predicciones/:id" element={<StaffPredicciones />} />
+            </Route>
+          </Route>
         </Route>
       </Routes>
     </Router>

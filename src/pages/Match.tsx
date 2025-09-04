@@ -529,10 +529,10 @@ function Match() {
 
   return (
     <div className="container max-w-2xl mx-auto p-4 sm:pt-10 justify-center items-center">
-      <h1 className="text-2xl sm:text-4xl w-full flex sm:justify-center items-center gap-2 font-bold text-yellow-400 mb-6">
+      {/* <h1 className="text-2xl sm:text-4xl w-full flex sm:justify-center items-center gap-2 font-bold text-yellow-400 mb-6">
         <FaCrown className="text-yellow-400 text-2xl sm:text-4xl inline" /> King
         del Partido
-      </h1>
+      </h1> */}
 
       {/* Match Information - Same as Dashboard */}
       <div className="space-y-4 w-full bg-card flex flex-col items-center mb-6">
@@ -633,7 +633,7 @@ function Match() {
             </div>
           )}
 
-          {hasAlreadyRated && !partido.finished && (
+          {hasAlreadyRated && (
             <div className="w-full max-w-2xl border border-gray-600 bg-primary p-4 rounded-lg shadow-md shadow-black">
               <div className="flex items-center justify-between mb-4">
                 <p className="text-base text-left text-yellow-500 flex items-center gap-1.5 font-medium">
@@ -696,14 +696,19 @@ function Match() {
 
               {/* User ratings list (grouped by team, sorted by promedio desc) */}
               <div className="mt-2 bg-card">
-                <p className="text-white text-sm font-medium mb-3">Tus calificaciones</p>
+                <p className="text-white text-sm font-medium mb-3">
+                  Tus calificaciones
+                </p>
                 {(() => {
                   const entries = userRatings
                     .map((r) => {
                       const pid = mpIdToPlayerId[r.match_players_id];
                       const p = pid ? playerById[pid] : null;
                       if (!p) return null as any;
-                      const avg = typeof averageRatings[pid] === "number" ? averageRatings[pid] : null;
+                      const avg =
+                        typeof averageRatings[pid] === "number"
+                          ? averageRatings[pid]
+                          : null;
                       const teamId = p?.team_id?.id ?? null;
                       return { r, pid, p, avg, teamId };
                     })
@@ -717,9 +722,14 @@ function Match() {
 
                   const homeId = partido?.team_home_id?.id;
                   const visitId = partido?.team_visit_id?.id;
-                  const byAvgDesc = (a: any, b: any) => (b.avg ?? -Infinity) - (a.avg ?? -Infinity);
-                  const homeEntries = entries.filter((e) => e.teamId === homeId).sort(byAvgDesc);
-                  const visitEntries = entries.filter((e) => e.teamId === visitId).sort(byAvgDesc);
+                  const byAvgDesc = (a: any, b: any) =>
+                    (b.avg ?? -Infinity) - (a.avg ?? -Infinity);
+                  const homeEntries = entries
+                    .filter((e) => e.teamId === homeId)
+                    .sort(byAvgDesc);
+                  const visitEntries = entries
+                    .filter((e) => e.teamId === visitId)
+                    .sort(byAvgDesc);
 
                   const TeamBlock = ({
                     title,
@@ -733,16 +743,27 @@ function Match() {
                     <div className="mb-4">
                       <div className="flex items-center gap-2 mb-2">
                         {badge ? (
-                          <img className="size-5" src={badge} alt={`${title} badge`} />
+                          <img
+                            className="size-5"
+                            src={badge}
+                            alt={`${title} badge`}
+                          />
                         ) : null}
-                        <span className="text-gray-300 text-sm font-semibold">{title}</span>
+                        <span className="text-gray-300 text-sm font-semibold">
+                          {title}
+                        </span>
                       </div>
                       {items.length === 0 ? (
-                        <div className="py-2 text-gray-500 text-sm">Sin calificaciones</div>
+                        <div className="py-2 text-gray-500 text-sm">
+                          Sin calificaciones
+                        </div>
                       ) : (
                         <div className="divide-y divide-gray-700">
                           {items.map(({ r, p, avg }) => (
-                            <div key={r.match_players_id} className="py-2 flex items-center justify-between">
+                            <div
+                              key={r.match_players_id}
+                              className="py-2 flex items-center justify-between"
+                            >
                               <div className="flex items-center gap-2">
                                 {p?.photo ? (
                                   <img
@@ -754,13 +775,20 @@ function Match() {
                                   <div className="size-8 aspect-square rounded-full bg-gray-700" />
                                 )}
                                 <div className="flex flex-col">
-                                  <span className="text-white text-sm">{p?.name || "Jugador"}</span>
-                                  {typeof avg === "number" && !Number.isNaN(avg) ? (
-                                    <span className="text-gray-400 text-xs">Promedio: {avg.toFixed(1)}</span>
+                                  <span className="text-white text-sm">
+                                    {p?.name || "Jugador"}
+                                  </span>
+                                  {typeof avg === "number" &&
+                                  !Number.isNaN(avg) ? (
+                                    <span className="text-gray-400 text-xs">
+                                      Promedio: {avg.toFixed(1)}
+                                    </span>
                                   ) : null}
                                 </div>
                               </div>
-                              <div className="text-green-400 text-sm sm:text-base font-semibold">{r.rating}</div>
+                              <div className="text-green-400 text-sm sm:text-base font-semibold">
+                                {r.rating}
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -770,7 +798,9 @@ function Match() {
 
                   if (homeEntries.length === 0 && visitEntries.length === 0) {
                     return (
-                      <div className="py-2 text-gray-400 text-sm">No se encontraron calificaciones.</div>
+                      <div className="py-2 text-gray-400 text-sm">
+                        No se encontraron calificaciones.
+                      </div>
                     );
                   }
 
@@ -792,8 +822,71 @@ function Match() {
               </div>
             </div>
           )}
-        </div>
       </div>
+    </div>
+
+      {/* Averages for finished matches when user didn't rate */}
+      {partido.finished && !hasAlreadyRated && (
+        <div className="w-full max-w-2xl border border-gray-600 bg-primary p-4 rounded-lg shadow-md shadow-black mb-6">
+          <h3 className="text-white text-lg font-semibold mb-3">Promedios de usuarios</h3>
+          {(() => {
+            const toEntry = (mp: any) => {
+              const pid = mp?.player_id?.id;
+              const p = pid ? playerById[pid] : null;
+              const avg = pid && typeof averageRatings[pid] === "number" ? averageRatings[pid] : null;
+              const teamId = p?.team_id?.id ?? null;
+              return pid && p ? { pid, p, avg, teamId } : null;
+            };
+            const homeId = partido?.team_home_id?.id;
+            const visitId = partido?.team_visit_id?.id;
+            const all = [...playersHome, ...playersVisit, ...playersDt]
+              .map(toEntry)
+              .filter(Boolean) as Array<{ pid: string; p: any; avg: number | null; teamId: string | null }>;
+            const byAvgDesc = (a: any, b: any) => (b.avg ?? -Infinity) - (a.avg ?? -Infinity);
+            const homeEntries = all.filter((e) => e.teamId === homeId).sort(byAvgDesc);
+            const visitEntries = all.filter((e) => e.teamId === visitId).sort(byAvgDesc);
+
+            const TeamBlock = ({ title, badge, items }: { title: string; badge?: string; items: typeof homeEntries }) => (
+              <div className="mb-4">
+                <div className="flex items-center gap-2 mb-2">
+                  {badge ? <img className="size-5" src={badge} alt={`${title} badge`} /> : null}
+                  <span className="text-gray-300 text-sm font-semibold">{title}</span>
+                </div>
+                {items.length === 0 ? (
+                  <div className="py-2 text-gray-500 text-sm">Sin datos</div>
+                ) : (
+                  <div className="divide-y divide-gray-700">
+                    {items.map(({ pid, p, avg }) => (
+                      <div key={pid} className="py-2 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          {p?.photo ? (
+                            <img className="size-8 aspect-square rounded-full object-cover" src={p.photo} alt={`${p?.name || "Jugador"} photo`} />
+                          ) : (
+                            <div className="size-8 aspect-square rounded-full bg-gray-700" />
+                          )}
+                          <span className="text-white text-sm">{p?.name || "Jugador"}</span>
+                        </div>
+                        {typeof avg === "number" && !Number.isNaN(avg) ? (
+                          <div className="text-yellow-400 text-sm sm:text-base font-semibold">{avg.toFixed(1)}</div>
+                        ) : (
+                          <div className="text-gray-500 text-sm">—</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+
+            return (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <TeamBlock title={partido?.team_home_id?.name || "Local"} badge={partido?.team_home_id?.badge} items={homeEntries} />
+                <TeamBlock title={partido?.team_visit_id?.name || "Visitante"} badge={partido?.team_visit_id?.badge} items={visitEntries} />
+              </div>
+            );
+          })()}
+        </div>
+      )}
 
       {/* Rules Section */}
       {partido.ratable &&

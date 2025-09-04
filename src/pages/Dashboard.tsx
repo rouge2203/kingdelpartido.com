@@ -5,12 +5,18 @@ import { useState, useEffect } from "react";
 import { GiWhistle } from "react-icons/gi";
 import { FaCrown } from "react-icons/fa6";
 import Loader from "../components/Loader";
+import UsernameModal from "../components/UsernameModal";
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [partidos, setPartidos] = useState<any[]>([]);
+  const [selectedCompetition, setSelectedCompetition] = useState<string>("all");
   const [loading, setLoading] = useState(false);
+  const [predictedMatches, setPredictedMatches] = useState<Set<string>>(
+    new Set()
+  );
+  const [usernameModalOpen, setUsernameModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchPartidos = async () => {
@@ -22,7 +28,8 @@ const Dashboard = () => {
           *,
           team_home_id (id, name, badge),
           team_visit_id (id, name, badge),
-          king_id (id, name, photo)
+          king_id (id, name, photo),
+          competition_id (id, name)
         `
         )
         .eq("visible", true)
@@ -39,6 +46,26 @@ const Dashboard = () => {
     fetchPartidos();
   }, []);
 
+  // Fetch which matches have predictions for this user
+  useEffect(() => {
+    const fetchPredicted = async () => {
+      if (!user?.id || partidos.length === 0) return;
+      const ids = partidos.map((p) => p.id);
+      const { data, error } = await supabase
+        .from("predictions")
+        .select("match_id")
+        .eq("user_id", user.id)
+        .in("match_id", ids);
+      if (error) {
+        console.error("Error fetching user predictions:", error);
+        return;
+      }
+      const set = new Set<string>((data ?? []).map((r: any) => r.match_id));
+      setPredictedMatches(set);
+    };
+    fetchPredicted();
+  }, [user?.id, partidos]);
+
   if (!user) {
     return <div>Please login to access the dashboard</div>;
   }
@@ -48,102 +75,120 @@ const Dashboard = () => {
     navigate("/login"); // Redirect after sign out
   };
 
-  return (
-    <div className="container max-w-2xl mx-auto p-4 sm:pt-10 justify-center items-center">
-      {loading && <Loader />}
-      <h1 className="text-2xl sm:text-4xl w-full flex sm:justify-center  items-center gap-2 font-bold text-yellow-400">
-        <FaCrown className="text-yellow-400 text-2xl sm:text-4xl inline" /> King
-        del Partido
-      </h1>
+  // Derive competitions from fetched matches
+  const competitions = (() => {
+    const map = new Map<string, { id: string; name: string }>();
+    for (const m of partidos) {
+      const id = m?.competition_id?.id;
+      const name = m?.competition_id?.name ?? "Sin competencia";
+      if (id) map.set(id, { id, name });
+    }
+    return Array.from(map.values()).sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+  })();
 
-      <div className="mt-4">
-        {loading ? null : partidos.length === 0 ? (
-          <p className="text-gray-400">No se encontraron partidos.</p>
+  // Group matches by competition for the 'all' view
+  const groupedByCompetition: Record<string, { name: string; matches: any[] }> =
+    partidos.reduce(
+      (acc: Record<string, { name: string; matches: any[] }>, m: any) => {
+        const id = m?.competition_id?.id ?? "none";
+        const name = m?.competition_id?.name ?? "Sin competencia";
+        if (!acc[id]) acc[id] = { name, matches: [] };
+        acc[id].matches.push(m);
+        return acc;
+      },
+      {}
+    );
+
+  const onClickSubirPredicciones = (matchId: string) => {
+    if (!profile?.username) {
+      setUsernameModalOpen(true);
+    } else {
+      navigate(`/predicciones/${matchId}`);
+    }
+  };
+
+  const renderMatchCard = (partido: any) => (
+    <div
+      key={partido.id}
+      className="flex flex-col space-y-3 bg-card w-full max-w-2xl border items-center border-gray-600 bg-primary p-4 rounded-lg shadow-md shadow-black"
+    >
+      <p className="text-white  w-full text-center text-base font-semibold">
+        {partido?.competition_id?.name ?? "Sin competencia"}
+      </p>
+      {predictedMatches.has(partido.id) && (
+        <span className="self-end -mt-6 mr-1 text-[10px] px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 border border-green-600">
+          Predicción enviada
+        </span>
+      )}
+      {partido.stadium && (
+        <p className="text-gray-400 -mt-2  text-xs   w-full text-center font-semibold">
+          {partido.stadium}
+        </p>
+      )}
+      <div className="flex flex-row items-center justify-between w-full ">
+        <div className="flex flex-col items-center space-y-1 w-1/3">
+          <img
+            className="size-10 aspect-square"
+            src={partido.team_home_id.badge}
+          />
+          <p className="text-white text-base font-medium">
+            {partido.team_home_id.name}
+          </p>
+        </div>
+        {!partido.finished && partido.home_goals == null ? (
+          <p className="text-gray-400 w-1/3 text-center text-sm">
+            {(() => {
+              const date = new Date(partido.datetime);
+              const day = date.getDate();
+              const month = date.toLocaleString("es-ES", { month: "long" });
+              const hours = date.getHours().toString().padStart(2, "0");
+              const minutes = date.getMinutes().toString().padStart(2, "0");
+              return `${day} ${
+                month.charAt(0).toUpperCase() + month.slice(1)
+              } ${hours}:${minutes}`;
+            })()}
+          </p>
         ) : (
-          <div className="space-y-4  w-full flex flex-col items-center">
-            {partidos.map((partido) => (
-              <div
-                key={partido.id}
-                className="flex flex-col space-y-3 bg-card w-full max-w-2xl border items-center border-gray-600 bg-primary p-4 rounded-lg shadow-md shadow-black"
-              >
-                <p className="text-white  w-full text-center text-base font-semibold">
-                  Primera División
-                </p>
-                {partido.stadium && (
-                  <p className="text-gray-400 -mt-2  text-xs   w-full text-center font-semibold">
-                    {partido.stadium}
-                  </p>
-                )}
-                <div className="flex flex-row items-center justify-between w-full ">
-                  <div className="flex flex-col items-center space-y-1 w-1/3">
-                    <img
-                      className="size-10 aspect-square"
-                      src={partido.team_home_id.badge}
-                    />
-                    <p className="text-white text-base font-medium">
-                      {partido.team_home_id.name}
-                    </p>
-                  </div>
-                  {!partido.finished && partido.home_goals == null ? (
-                    <p className="text-gray-400 w-1/3 text-center text-sm">
-                      {(() => {
-                        const date = new Date(partido.datetime);
-                        const day = date.getDate();
-                        const month = date.toLocaleString("es-ES", {
-                          month: "long",
-                        });
-                        const hours = date
-                          .getHours()
-                          .toString()
-                          .padStart(2, "0");
-                        const minutes = date
-                          .getMinutes()
-                          .toString()
-                          .padStart(2, "0");
-                        return `${day} ${
-                          month.charAt(0).toUpperCase() + month.slice(1)
-                        } ${hours}:${minutes}`;
-                      })()}
-                    </p>
-                  ) : (
-                    <p className="text-gray-400 w-1/3 text-center text-2xl sm:text-3xl font-medium">
-                      {partido.home_goals} - {partido.visit_goals}
-                    </p>
-                  )}
-                  <div className="flex flex-col items-center space-y-1 w-1/3">
-                    <img
-                      className="size-10 aspect-square"
-                      src={partido.team_visit_id.badge}
-                    />
-                    <p className="text-white text-base font-medium">
-                      {partido.team_visit_id.name}
-                    </p>
-                  </div>
-                </div>
+          <p className="text-gray-400 w-1/3 text-center text-2xl sm:text-3xl font-medium">
+            {partido.home_goals} - {partido.visit_goals}
+          </p>
+        )}
+        <div className="flex flex-col items-center space-y-1 w-1/3">
+          <img
+            className="size-10 aspect-square"
+            src={partido.team_visit_id.badge}
+          />
+          <p className="text-white text-base font-medium">
+            {partido.team_visit_id.name}
+          </p>
+        </div>
+      </div>
 
-                {!partido.ratable && !partido.finished && (
-                  <div className="flex flex-col items-center">
-                    <p className="text-sm text-center flex   text-gray-200 font-medium">
-                      Podrás calificar a los jugadores hasta
-                    </p>
-                    <p className="text-sm text-center flex   text-gray-200 font-medium">
-                      10 minutos antes pitazo final.
-                      <span className="inline align-text-bottom ml-1">
-                        <GiWhistle className="text-yellow-500 size-5 inline" />
-                      </span>
-                    </p>
-                  </div>
-                )}
+      {!partido.ratable && !partido.finished && (
+        <div className="flex flex-col items-center">
+          <p className="text-sm text-center flex   text-gray-200 font-medium">
+            Podrás calificar a los jugadores hasta
+          </p>
+          <p className="text-sm text-center flex   text-gray-200 font-medium">
+            10 minutos antes pitazo final.
+            <span className="inline align-text-bottom ml-1">
+              <GiWhistle className="text-yellow-500 size-5 inline" />
+            </span>
+          </p>
+        </div>
+      )}
 
-                {partido.ratable && !partido.finished && (
-                  <NavLink
-                    to={`/match/${partido.id}`}
-                    className="border hover:cursor-pointer border-yellow-500 flex items-center justify-center gap-1 p-2 text-sm text-white rounded-md shadow-md shadow-yellow-500/50"
-                  >
-                    <FaCrown className="text-yellow-500 text-sm inline" />
-                    Calificar jugadores
-                  </NavLink>
-                )}
+      {partido.ratable && !partido.finished && (
+        <NavLink
+          to={`/match/${partido.id}`}
+          className="border hover:cursor-pointer border-yellow-500 flex items-center justify-center gap-1 p-2 text-sm text-white rounded-md shadow-md shadow-yellow-500/50"
+        >
+          <FaCrown className="text-yellow-500 text-sm inline" />
+          Calificar jugadores
+        </NavLink>
+      )}
 
                 {partido.finished && (
                   <div className="w-full max-w-lg bg-yellow-500/10 border border-gray-600 rounded-lg p-3 sm:p-4 flex items-center justify-between shadow-md shadow-black">
@@ -175,11 +220,114 @@ const Dashboard = () => {
                     </div>
                   </div>
                 )}
+
+                {partido.finished && (
+                  <NavLink
+                    to={`/match/${partido.id}`}
+                    className="mt-2 border hover:cursor-pointer border-gray-600 flex items-center justify-center gap-1 p-2 text-sm text-white rounded-md"
+                  >
+                    Ver calificaciones
+                  </NavLink>
+                )}
+
+      {partido.bettable && (
+        <div className="w-full">
+          <button
+            onClick={() => onClickSubirPredicciones(partido.id)}
+            className="w-full mt-1 rounded-md bg-yellow-500/90 text-black font-semibold px-3 py-2 hover:bg-yellow-500"
+          >
+            Subir predicciones
+          </button>
+          {profile?.role === "staff" && (
+            <button
+              onClick={() => navigate(`/staff/predicciones/${partido.id}`)}
+              className="w-full mt-2 rounded-md border border-yellow-600/60 text-yellow-400 font-medium px-3 py-2 hover:border-yellow-500"
+            >
+              Ver estadísticas de predicciones (Staff)
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="container max-w-2xl mx-auto p-4 pt-2 sm:pt-4 justify-center items-center">
+      {profile?.role != "authenticated" && (
+        <div className="flex flex-col items-center gap-2">
+          <h1 className="text-base w-full flex items-center underline underline-offset-4 gap-2 font-bold text-yellow-400">
+            <FaCrown className="text-yellow-400 text-base inline-block" />{" "}
+            Acceso total
+          </h1>
+        </div>
+      )}
+      {loading && <Loader />}
+
+      {/* Competition filter badges */}
+      <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
+        <button
+          onClick={() => setSelectedCompetition("all")}
+          className={`whitespace-nowrap px-3 py-1 rounded-md border text-sm ${
+            selectedCompetition === "all"
+              ? "border-yellow-500 text-yellow-400 bg-yellow-500/10"
+              : "border-gray-600 text-gray-300 hover:border-yellow-600 hover:text-yellow-400"
+          }`}
+        >
+          Todas
+        </button>
+        {competitions.map((c) => (
+          <button
+            key={c.id}
+            onClick={() => setSelectedCompetition(c.id)}
+            className={`whitespace-nowrap px-3 py-1 rounded-md border text-sm ${
+              selectedCompetition === c.id
+                ? "border-yellow-500 text-yellow-400 bg-yellow-500/10"
+                : "border-gray-600 text-gray-300 hover:border-yellow-600 hover:text-yellow-400"
+            }`}
+          >
+            {c.name}
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-4">
+        {loading ? null : partidos.length === 0 ? (
+          <p className="text-gray-400">No se encontraron partidos.</p>
+        ) : (
+          <div className="space-y-6 w-full flex flex-col items-center">
+            {selectedCompetition === "all" ? (
+              Object.entries(groupedByCompetition)
+                .sort((a, b) => a[1].name.localeCompare(b[1].name))
+                .map(([compId, group]) => (
+                  <div
+                    key={compId}
+                    className="w-full flex flex-col items-center gap-3"
+                  >
+                    <div className="w-full max-w-2xl">
+                      <h2 className="text-gray-300 text-sm uppercase tracking-wide border-b border-gray-700 pb-1">
+                        {group.name}
+                      </h2>
+                    </div>
+                    <div className="space-y-4 w-full flex flex-col items-center">
+                      {group.matches.map((m) => renderMatchCard(m))}
+                    </div>
+                  </div>
+                ))
+            ) : (
+              <div className="space-y-4 w-full flex flex-col items-center">
+                {partidos
+                  .filter((m) => m?.competition_id?.id === selectedCompetition)
+                  .map((m) => renderMatchCard(m))}
               </div>
-            ))}
+            )}
           </div>
         )}
       </div>
+
+      <UsernameModal
+        open={usernameModalOpen}
+        onClose={() => setUsernameModalOpen(false)}
+      />
 
       <div className="flex justify-between items-center  mt-4">
         <div className="flex flex-col  self-center">

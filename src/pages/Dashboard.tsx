@@ -7,6 +7,47 @@ import { FaCrown } from "react-icons/fa6";
 import Loader from "../components/Loader";
 import UsernameModal from "../components/UsernameModal";
 
+// Countdown Timer Component
+const CountdownTimer = () => {
+  const [timeLeft, setTimeLeft] = useState<string>("");
+
+  useEffect(() => {
+    const targetDate = new Date("2025-09-14T15:00:00-05:00"); // September 14, 2025 at 15:00 COT
+
+    const updateCountdown = () => {
+      const now = new Date();
+      const difference = targetDate.getTime() - now.getTime();
+
+      if (difference > 0) {
+        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+        const hours = Math.floor(
+          (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+        );
+        const minutes = Math.floor(
+          (difference % (1000 * 60 * 60)) / (1000 * 60)
+        );
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+        setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+      } else {
+        setTimeLeft("¡Premio finalizado!");
+      }
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="bg-black/30 rounded-lg px-3 py-2 border border-orange-500/30">
+      <p className="text-orange-300 text-sm font-medium">⏰ Tiempo restante:</p>
+      <p className="text-yellow-400 text-lg font-bold font-mono">{timeLeft}</p>
+    </div>
+  );
+};
+
 const Dashboard = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
@@ -340,6 +381,31 @@ const Dashboard = () => {
           </h1>
         </div>
       )}
+
+      {/* Pollos Pepe Promotional Banner */}
+      <div className="mt-4 w-full max-w-2xl mx-auto rounded-xl p-4 bg-gradient-to-r from-orange-600/20 via-yellow-500/20 to-orange-600/20 border border-orange-500/50 shadow-[0_0_20px_rgba(249,115,22,0.3)]">
+        <div className="text-center">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <span className="text-2xl">🍗</span>
+            <h3 className="text-orange-400 font-bold text-lg">
+              ¡PREMIO ESPECIAL!
+            </h3>
+            <span className="text-2xl">🍗</span>
+          </div>
+          <p className="text-white font-semibold text-base mb-1">
+            Usuario con más puntos el
+          </p>
+          <p className="text-yellow-400 font-bold text-xl mb-1">
+            Domingo 14 de Septiembre 2025 - 15:00
+          </p>
+          <p className="text-white font-semibold text-base mb-3">
+            gana un combo de{" "}
+            <span className="text-orange-400 font-bold">Pollos Pepe</span> 🍗
+          </p>
+          <CountdownTimer />
+        </div>
+      </div>
+
       {loading && <Loader />}
 
       {/* Competition filter badges */}

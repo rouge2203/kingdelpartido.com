@@ -12,6 +12,7 @@ import Demo from "./pages/Demo";
 import Predicciones from "./pages/Predicciones";
 import StaffRoute from "./components/StaffRoute";
 import StaffPredicciones from "./pages/StaffPredicciones";
+import Leaderboard from "./pages/Leaderboard";
 
 function AppRouter() {
   return (
@@ -29,8 +30,12 @@ function AppRouter() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/match/:id" element={<Match />} />
             <Route path="/predicciones/:id" element={<Predicciones />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
             <Route element={<StaffRoute />}>
-              <Route path="/staff/predicciones/:id" element={<StaffPredicciones />} />
+              <Route
+                path="/staff/predicciones/:id"
+                element={<StaffPredicciones />}
+              />
             </Route>
           </Route>
         </Route>

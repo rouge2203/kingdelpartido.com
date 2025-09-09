@@ -388,20 +388,25 @@ const Predicciones = () => {
           </div>
           <div className="rounded-lg border border-gray-700 bg-black/20 p-3">
             <div className="text-sm text-gray-300 flex items-start gap-2">
-              <CheckIcon className="size-4 text-yellow-400 shrink-0 mt-0.5" />1 punto por acertar ganador.
+              <CheckIcon className="size-4 text-yellow-400 shrink-0 mt-0.5" />1
+              punto por acertar ganador.
             </div>
             <div className="text-sm text-gray-300 flex items-start gap-2 mt-2">
-              <CheckIcon className="size-4 text-yellow-400 shrink-0 mt-0.5" />3 puntos por acertar marcador exacto.
+              <CheckIcon className="size-4 text-yellow-400 shrink-0 mt-0.5" />3
+              puntos por acertar marcador exacto.
             </div>
             <div className="text-sm text-gray-300 flex items-start gap-2 mt-2">
-              <CheckIcon className="size-4 text-yellow-400 shrink-0 mt-0.5" />1 punto por cada goleador que aciertes.
+              <CheckIcon className="size-4 text-yellow-400 shrink-0 mt-0.5" />1
+              punto por cada goleador que aciertes.
             </div>
             <div className="text-sm text-gray-300 flex items-start gap-2 mt-2">
-              <CheckIcon className="size-4 text-yellow-400 shrink-0 mt-0.5" />1 punto por acertar el King del Partido.
+              <CheckIcon className="size-4 text-yellow-400 shrink-0 mt-0.5" />1
+              punto por acertar el King del Partido.
             </div>
             <div className="text-sm text-gray-300 flex items-start gap-2 mt-2">
               <StarIcon className="size-4 text-yellow-400 shrink-0 mt-0.5" />
-              Marca un goleador con multiplicador 2x para duplicar puntos si aciertas (solo uno por partido).
+              Marca un goleador con multiplicador 2x para duplicar puntos si
+              aciertas (solo uno por partido).
             </div>
           </div>
         </div>
@@ -456,7 +461,9 @@ const Predicciones = () => {
                   Tus goleadores
                 </h3>
                 <p className="text-xs text-gray-400 mb-2 flex items-center gap-1">
-                  <StarIcon className="size-4 text-yellow-400" /> 1 punto por cada goleador acertado. Si marcaste 2x, ese goleador duplica sus puntos.
+                  <StarIcon className="size-4 text-yellow-400" /> 1 punto por
+                  cada goleador acertado. Si marcaste 2x, ese goleador duplica
+                  sus puntos.
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {homeScorers.filter(Boolean).length > 0 && (
@@ -468,7 +475,10 @@ const Predicciones = () => {
                         {homeScorers.filter(Boolean).map((pid, i) => {
                           const p = playersById[pid as string];
                           return (
-                            <div key={`hs-${pid}-${i}`} className="flex items-center gap-3 rounded-md border border-gray-700 px-2 py-1.5">
+                            <div
+                              key={`hs-${pid}-${i}`}
+                              className="flex items-center gap-3 rounded-md border border-gray-700 px-2 py-1.5"
+                            >
                               <img
                                 src={
                                   p?.photo ??
@@ -476,9 +486,14 @@ const Predicciones = () => {
                                 }
                                 className="size-6 rounded-full object-cover"
                               />
-                              <span className="text-gray-200 text-sm">{p?.name ?? "Jugador"}</span>
+                              <span className="text-gray-200 text-sm">
+                                {p?.name ?? "Jugador"}
+                              </span>
                               {multiplierPid === pid && (
-                                <span className="ml-auto inline-flex items-center gap-1 text-yellow-400 text-xs font-semibold"><StarIcon className="size-4"/>2x</span>
+                                <span className="ml-auto inline-flex items-center gap-1 text-yellow-400 text-xs font-semibold">
+                                  <StarIcon className="size-4" />
+                                  2x
+                                </span>
                               )}
                             </div>
                           );
@@ -495,7 +510,10 @@ const Predicciones = () => {
                         {visitScorers.filter(Boolean).map((pid, i) => {
                           const p = playersById[pid as string];
                           return (
-                            <div key={`vs-${pid}-${i}`} className="flex items-center gap-3 rounded-md border border-gray-700 px-2 py-1.5">
+                            <div
+                              key={`vs-${pid}-${i}`}
+                              className="flex items-center gap-3 rounded-md border border-gray-700 px-2 py-1.5"
+                            >
                               <img
                                 src={
                                   p?.photo ??
@@ -503,9 +521,14 @@ const Predicciones = () => {
                                 }
                                 className="size-6 rounded-full object-cover"
                               />
-                              <span className="text-gray-200 text-sm">{p?.name ?? "Jugador"}</span>
+                              <span className="text-gray-200 text-sm">
+                                {p?.name ?? "Jugador"}
+                              </span>
                               {multiplierPid === pid && (
-                                <span className="ml-auto inline-flex items-center gap-1 text-yellow-400 text-xs font-semibold"><StarIcon className="size-4"/>2x</span>
+                                <span className="ml-auto inline-flex items-center gap-1 text-yellow-400 text-xs font-semibold">
+                                  <StarIcon className="size-4" />
+                                  2x
+                                </span>
                               )}
                             </div>
                           );
@@ -609,9 +632,9 @@ const Predicciones = () => {
                 <img src={match.team_visit_id.badge} className="size-6" />
               </div>
             </div>
-          <div className="mt-2 text-xs text-gray-400 space-y-1">
-            <p>3 pts por marcador exacto, 1 pt por acertar ganador.</p>
-          </div>
+            <div className="mt-2 text-xs text-gray-400 space-y-1">
+              <p>3 pts por marcador exacto, 1 pt por acertar ganador.</p>
+            </div>
           </div>
         )}
 
@@ -625,7 +648,8 @@ const Predicciones = () => {
               Goleadores
             </h3>
             <p className="text-xs text-gray-400 mb-3 flex items-center gap-1">
-              <StarIcon className="size-4 text-yellow-400" /> Marca un goleador con multiplicador 2x (opcional, solo uno)
+              <StarIcon className="size-4 text-yellow-400" /> Marca un goleador
+              con multiplicador 2x (opcional, solo uno)
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {showHomeScorers && (
@@ -660,7 +684,7 @@ const Predicciones = () => {
                                       "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/kingdelpartido/assets/player-fallback-dark.png"
                                     : "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/kingdelpartido/assets/player-fallback-dark.png"
                                 }
-                                className="size-5 shrink-0 rounded-full bg-gray-700 outline -outline-offset-1 outline-white/10"
+                                className="size-5 shrink-0  rounded-full bg-gray-700 outline -outline-offset-1 outline-white/10"
                               />
                               <span className="block truncate">
                                 {value
@@ -685,7 +709,9 @@ const Predicciones = () => {
                             title="Marcar 2x"
                             onClick={() => {
                               if (!value) return;
-                              setMultiplierPid((prev) => (prev === value ? null : value));
+                              setMultiplierPid((prev) =>
+                                prev === value ? null : value
+                              );
                             }}
                           >
                             <StarIcon className="size-4" />
@@ -698,7 +724,7 @@ const Predicciones = () => {
                               <ListboxOption
                                 key={p.id}
                                 value={p.id}
-                                className="group relative cursor-default py-2 pr-9 pl-3 text-white select-none data-[focus]:bg-yellow-600/20 data-[focus]:outline-none"
+                                className="group relative bg-card cursor-default py-2 pr-9 pl-3 text-white select-none data-[focus]:bg-yellow-600/20 data-[focus]:outline-none"
                               >
                                 <div className="flex items-center">
                                   <img
@@ -786,7 +812,9 @@ const Predicciones = () => {
                             title="Marcar 2x"
                             onClick={() => {
                               if (!value) return;
-                              setMultiplierPid((prev) => (prev === value ? null : value));
+                              setMultiplierPid((prev) =>
+                                prev === value ? null : value
+                              );
                             }}
                           >
                             <StarIcon className="size-4" />
@@ -863,7 +891,7 @@ const Predicciones = () => {
                             "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/kingdelpartido/assets/player-fallback-dark.png"
                           : "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/kingdelpartido/assets/player-fallback-dark.png"
                       }
-                      className="size-5 shrink-0 rounded-full bg-gray-700 outline -outline-offset-1 outline-white/10"
+                      className="size-5 shrink-0 rounded-full  bg-gray-700 outline -outline-offset-1 outline-white/10"
                     />
                     <span className="block truncate">
                       {kingPlayerId
